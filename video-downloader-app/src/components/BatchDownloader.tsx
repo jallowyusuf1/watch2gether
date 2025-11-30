@@ -286,12 +286,35 @@ const BatchDownloader = () => {
               : item
           ));
         } catch (error: any) {
+          let errorMessage = 'Download failed';
+
+          if (error instanceof Error) {
+            errorMessage = error.message;
+
+            // Categorize errors with helpful suggestions
+            if (errorMessage.includes('quota exceeded') || errorMessage.includes('quotaExceeded')) {
+              errorMessage = 'YouTube API quota exceeded. Try again tomorrow.';
+            } else if (errorMessage.includes('Network error') || errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ENOTFOUND')) {
+              errorMessage = 'Cannot connect to server. Ensure server is running.';
+            } else if (errorMessage.includes('404') || errorMessage.includes('not found') || errorMessage.includes('Video not found')) {
+              errorMessage = 'Video not found. May be deleted or private.';
+            } else if (errorMessage.includes('403') || errorMessage.includes('Access denied') || errorMessage.includes('forbidden')) {
+              errorMessage = 'Access denied. Video may be private, age-restricted, or requires sign-in.';
+            } else if (errorMessage.includes('timeout') || errorMessage.includes('ETIMEDOUT')) {
+              errorMessage = 'Request timeout. Check internet connection.';
+            } else if (errorMessage.includes('Invalid YouTube API key') || errorMessage.includes('invalidCredentials')) {
+              errorMessage = 'Invalid YouTube API key. Check configuration.';
+            } else if (errorMessage.includes('private') || errorMessage.includes('age-restricted')) {
+              errorMessage = 'Cannot download: Video is private or age-restricted.';
+            }
+          }
+
           setQueue(prev => prev.map((item, idx) =>
             idx === currentItemIndex
               ? {
                   ...item,
                   status: 'failed',
-                  error: error.message || 'Download failed',
+                  error: errorMessage,
                 }
               : item
           ));
