@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Only run lint-staged if we're in a directory with package.json that has lint-staged config
+if [ -d "video-downloader-app" ] && [ -f "video-downloader-app/package.json" ]; then
+  cd video-downloader-app
+  npx lint-staged
+else
+  echo "Skipping lint-staged - video-downloader-app not found"
+fi

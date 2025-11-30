@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>video-downloader-app</title>
+    <script>
+      // Apply theme immediately to prevent flash
+      (function() {
+        try {
+          const stored = localStorage.getItem('video-downloader-settings');
+          let theme = 'auto';
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            theme = parsed.theme || 'auto';
+          }
+          
+          const root = document.documentElement;
+          if (theme === 'dark') {
+            root.classList.add('dark');
+          } else if (theme === 'light') {
+            root.classList.remove('dark');
+          } else {
+            // Auto mode - use system preference
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              root.classList.add('dark');
+            } else {
+              root.classList.remove('dark');
+            }
+          }
+        } catch (e) {
+          // Fallback to system preference
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,440 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Light theme CSS variables */
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --secondary-color: #8b5cf6;
+  --accent-color: #ec4899;
+  --background-color: #f8f9ff;
+  --background-secondary: #ffffff;
+  --text-color: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --card-background: rgba(255, 255, 255, 0.8);
+  --shadow-color: rgba(99, 102, 241, 0.08);
+  --error-color: #ef4444;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+
+  /* Smooth transitions */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark {
+  /* Dark theme CSS variables */
+  --primary-color: #818cf8;
+  --primary-hover: #6366f1;
+  --secondary-color: #a78bfa;
+  --accent-color: #f472b6;
+  --background-color: #0f172a;
+  --background-secondary: #1e293b;
+  --text-color: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --card-background: rgba(30, 41, 59, 0.8);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --error-color: #f87171;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --info-color: #60a5fa;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f8f9ff;
+  background: linear-gradient(180deg, #e8eaf6 0%, #f8f9ff 100%);
+  color: #1e293b;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background: #1a1a2e;
+  background: linear-gradient(180deg, #16213e 0%, #1a1a2e 100%);
+  color: #ffffff;
+}
+
+/* Remove focus outline from all buttons and interactive elements */
+button:focus,
+button:focus-visible,
+input:focus,
+select:focus,
+textarea:focus,
+a:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Add subtle custom focus indication for accessibility (optional) */
+button:focus-visible {
+  ring: 2px;
+  ring-color: transparent;
+}
+
+/* Bubble Card Styles - Matching Tech Nexus with 3D Tilt */
+.bubble-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(200, 200, 220, 0.5) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  color: #1e293b !important;
+  transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  position: relative;
+  z-index: 1;
+}
+
+.dark .bubble-card {
+  background: rgba(35, 35, 60, 0.7) !important;
+  border: 1px solid rgba(70, 70, 100, 0.3) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+  color: #ffffff !important;
+}
+
+.bubble-card:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-8px) !important;
+  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+.dark .bubble-card:hover {
+  box-shadow: 0 20px 60px rgba(100, 80, 200, 0.4) !important;
+  border-color: rgba(120, 100, 200, 0.5) !important;
+}
+
+/* Bubble Card No Tilt - For cards with input fields */
+.bubble-card-no-tilt {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(200, 200, 220, 0.5) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 10px 40px rgba(99, 102, 241, 0.15) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  color: #1e293b !important;
+  position: relative;
+  z-index: 1;
+}
+
+.dark .bubble-card-no-tilt {
+  background: rgba(35, 35, 60, 0.7) !important;
+  border: 1px solid rgba(70, 70, 100, 0.3) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+  color: #ffffff !important;
+}
+
+.bubble-card-no-tilt:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+.dark .bubble-card-no-tilt:hover {
+  box-shadow: 0 20px 60px rgba(100, 80, 200, 0.4) !important;
+  border-color: rgba(120, 100, 200, 0.5) !important;
+}
+
+/* Purple Accent Card */
+.bubble-card-accent {
+  background: linear-gradient(135deg, #6b46c1 0%, #8b5cf6 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
+}
+
+.bubble-card-accent:hover {
+  box-shadow: 0 20px 60px rgba(139, 92, 246, 0.6);
+}
+
+/* Bubble Button Styles - Fully Rounded Bubbles */
+.bubble-btn {
+  background: #6366f1 !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  border-radius: 9999px !important; /* Fully rounded */
+  padding: 12px 32px !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.1) inset !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.dark .bubble-btn {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1a1a2e !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+}
+
+.bubble-btn:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.2) inset !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  background: #4f46e5 !important;
+}
+
+.dark .bubble-btn:hover {
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.bubble-btn-secondary {
+  background: transparent !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(99, 102, 241, 0.5) !important;
+  border-radius: 9999px !important; /* Fully rounded - pill shape */
+  color: #6366f1 !important;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15) !important;
+  padding: 12px 32px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  /* Override any purple/gradient backgrounds */
+  background-image: none !important;
+}
+
+.dark .bubble-btn-secondary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.bubble-btn-secondary:hover {
+  background: rgba(99, 102, 241, 0.1) !important;
+  background-image: none !important;
+  background-color: rgba(99, 102, 241, 0.1) !important;
+  border-color: rgba(99, 102, 241, 0.8) !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+}
+
+.dark .bubble-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.2) !important;
+}
+
+.bubble-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 9999px !important; /* Fully rounded */
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4) !important;
+  padding: 12px 32px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.bubble-btn-primary:hover {
+  background: linear-gradient(135deg, #7c8ef0 0%, #8a5bb8 100%) !important;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.6) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Make all buttons bubble-style by default - Fully Rounded */
+button:not(.bubble-btn):not(.bubble-btn-secondary):not(.bubble-btn-primary):not([type="submit"]):not([type="button"]):not([type="reset"]) {
+  border-radius: 9999px !important; /* Fully rounded */
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+/* Ensure all buttons have bubble styling */
+button[type="button"],
+button[type="submit"],
+button:not([type]) {
+  border-radius: 9999px !important; /* Fully rounded */
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+/* Override btn-glass classes to use bubble styling - Fully Rounded Bubbles */
+.btn-glass {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 9999px !important; /* Fully rounded */
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.2) !important;
+}
+
+.btn-primary-glass {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 9999px !important; /* Fully rounded */
+  color: white !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+}
+
+.btn-primary-glass:hover {
+  background: linear-gradient(135deg, #7c8ef0 0%, #8a5bb8 100%) !important;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.6) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.6s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.6s ease-out forwards;
+}
+
+/* Scroll animation classes - works both up and down */
+.scroll-animate {
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-animate.scroll-hidden {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.scroll-animate.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Ensure animations work when scrolling back up */
+.scroll-animate.scroll-hidden.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Background grid pattern */
+.bg-grid {
+  background-image: 
+    linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.dark .bg-grid {
+  background-image: 
+    linear-gradient(rgba(96, 165, 250, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 165, 250, 0.1) 1px, transparent 1px);
+}
+
+/* Floating animation for hero particles */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-40px) translateX(-10px);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translateY(-20px) translateX(5px);
+    opacity: 0.6;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
