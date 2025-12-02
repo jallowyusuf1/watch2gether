@@ -457,7 +457,7 @@ const DownloadForm = forwardRef<DownloadFormRef>((props, ref) => {
   return (
     <div className="w-full">
       {/* Main Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 md:p-10">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 md:p-10" style={{ transform: 'none' }}>
         {/* Heading */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -499,6 +499,7 @@ const DownloadForm = forwardRef<DownloadFormRef>((props, ref) => {
                          : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500/20'
                      }`}
             rows={3}
+            style={{ transform: 'none' }}
           />
           
           {/* Helper Text */}

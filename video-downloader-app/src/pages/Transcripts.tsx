@@ -268,7 +268,7 @@ const Transcripts = () => {
         </h1>
 
         {/* URL Input Section for Transcript Generation */}
-        <div className="mb-8 bubble-card p-6">
+        <div className="mb-8 bubble-card p-6" style={{ transform: 'none' }}>
           <div className="flex items-center gap-3 mb-4">
             <FileText className="w-6 h-6 text-purple-400" />
             <h2 className="text-xl font-semibold text-white">Generate Transcript</h2>
@@ -294,7 +294,8 @@ const Transcripts = () => {
                 className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/10
                          focus:border-purple-400 focus:outline-none
                          focus:ring-2 focus:ring-purple-400/20 text-white placeholder-gray-400
-                         transition-all duration-200 backdrop-blur-sm disabled:opacity-50"
+                         transition-colors duration-200 backdrop-blur-sm disabled:opacity-50"
+                style={{ transform: 'none' }}
               />
               {transcriptStatus === 'processing' && (
                 <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400 animate-spin" />
