@@ -199,13 +199,11 @@ export const AIVideoPlayer = ({ className = '', onEnded }: AIVideoPlayerProps) =
     const animate = () => {
       const currentTime = (Date.now() - startTimeRef.current) / 1000;
       animationTime = currentTime;
-      setTime(currentTime);
 
       // Reset after 15 seconds
       if (currentTime >= duration) {
         startTimeRef.current = Date.now();
         animationTime = 0;
-        setTime(0);
         dataStreams.length = 0;
         thoughtParticles.length = 0;
         analysisWaves.length = 0;
