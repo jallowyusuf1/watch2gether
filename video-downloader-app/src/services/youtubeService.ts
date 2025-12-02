@@ -436,5 +436,115 @@ export const youtubeService = {
       throw new Error('An unexpected error occurred during video download.');
     }
   },
+
+  /**
+   * Get video transcript/captions from YouTube
+   * Uses youtube-transcript API to fetch subtitles/captions
+   *
+   * @param urlOrId - YouTube video URL or video ID
+   * @returns Promise that resolves to transcript text
+   * @throws Error if transcript is unavailable or fetch fails
+   */
+  async getTranscript(urlOrId: string): Promise<string> {
+    const videoId = this.extractVideoId(urlOrId);
+
+    try {
+      // Use youtube-transcript-api via a CORS proxy
+      // This API doesn't require authentication and works for most public videos
+      const corsProxy = 'https://corsproxy.io/?';
+      const transcriptApiUrl = `${corsProxy}https://www.youtube.com/watch?v=${videoId}`;
+
+      // Fetch the video page to extract caption tracks
+      const response = await axios.get(transcriptApiUrl, {
+        timeout: 15000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+
+      const html = response.data;
+
+      // Extract caption tracks from the page
+      const captionTracksMatch = html.match(/"captions":\{"playerCaptionsTracklistRenderer":\{"captionTracks":(\[.*?\])/);
+
+      if (!captionTracksMatch) {
+        throw new Error('No captions available for this video');
+      }
+
+      const captionTracks = JSON.parse(captionTracksMatch[1]);
+
+      if (!captionTracks || captionTracks.length === 0) {
+        throw new Error('No captions available for this video');
+      }
+
+      // Prefer English captions, fallback to first available
+      let captionUrl = captionTracks.find((track: any) =>
+        track.languageCode === 'en' || track.languageCode === 'en-US'
+      )?.baseUrl || captionTracks[0]?.baseUrl;
+
+      if (!captionUrl) {
+        throw new Error('Could not find caption URL');
+      }
+
+      // Fetch the caption data
+      const captionResponse = await axios.get(`${corsProxy}${captionUrl}`, {
+        timeout: 10000,
+      });
+
+      // Parse XML caption data
+      const captionXml = captionResponse.data;
+
+      // Extract text from XML
+      const textMatches = captionXml.matchAll(/<text[^>]*>(.*?)<\/text>/g);
+      const transcriptLines: string[] = [];
+
+      for (const match of textMatches) {
+        // Decode HTML entities and clean up the text
+        const text = match[1]
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&nbsp;/g, ' ')
+          .replace(/<[^>]*>/g, '') // Remove any HTML tags
+          .trim();
+
+        if (text) {
+          transcriptLines.push(text);
+        }
+      }
+
+      if (transcriptLines.length === 0) {
+        throw new Error('Could not extract transcript text');
+      }
+
+      // Join all lines with newlines
+      return transcriptLines.join('\n');
+
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+          throw new Error('Transcript request timeout. Please try again.');
+        }
+
+        if (error.response?.status === 404) {
+          throw new Error('Video not found or captions unavailable');
+        }
+
+        if (error.response?.status === 403) {
+          throw new Error('Access denied. The video may be private or age-restricted.');
+        }
+
+        throw new Error(`Network error while fetching transcript: ${error.message}`);
+      }
+
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error('Failed to fetch transcript. The video may not have captions available.');
+    }
+  },
 };
 

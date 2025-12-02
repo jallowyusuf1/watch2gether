@@ -449,5 +449,35 @@ export const tiktokService = {
       throw new Error('An unexpected error occurred during TikTok video download.');
     }
   },
+
+  /**
+   * Get video transcript/captions from TikTok
+   * Note: TikTok videos don't have traditional captions/transcripts like YouTube
+   * This returns the video description/caption text instead
+   *
+   * @param url - TikTok video URL
+   * @returns Promise that resolves to transcript text (video description)
+   * @throws Error if transcript is unavailable or fetch fails
+   */
+  async getTranscript(url: string): Promise<string> {
+    try {
+      // Get video metadata which includes the caption/description
+      const metadata = await this.getVideoMetadata(url);
+
+      if (!metadata.description || metadata.description.trim().length === 0) {
+        throw new Error('No caption/description available for this TikTok video');
+      }
+
+      // Return the description as the transcript
+      // TikTok doesn't have traditional transcripts, so we use the caption
+      return `TikTok Video Caption:\n\n${metadata.description}\n\nAuthor: @${metadata.author}`;
+
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to fetch TikTok video caption. The video may not have a description.');
+    }
+  },
 };
 
