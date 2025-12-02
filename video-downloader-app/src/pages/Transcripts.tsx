@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, FileText, Youtube, Music, ArrowUpDown, X, Clock, Calendar, Download, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { storageService } from '../services/storageService';
@@ -23,7 +23,7 @@ const Transcripts = () => {
   const [transcriptStatus, setTranscriptStatus] = useState<TranscriptStatus>('idle');
   const [transcriptMessage, setTranscriptMessage] = useState('');
   const navigate = useNavigate();
-  const { showSuccess, showError, showInfo } = useNotifications();
+  const { showSuccess, showError } = useNotifications();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Load videos with transcripts from IndexedDB
@@ -167,7 +167,7 @@ const Transcripts = () => {
       setTranscriptStatus('processing');
       setTranscriptMessage('Fetching video metadata...');
 
-      let videoData: any;
+      let videoData: Video;
       let transcript: string = '';
 
       // Get video metadata and transcript based on platform
@@ -236,11 +236,12 @@ const Transcripts = () => {
         setTranscriptMessage('');
       }, 3000);
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Transcript generation error:', error);
       setTranscriptStatus('error');
-      setTranscriptMessage(error.message || 'Failed to generate transcript');
-      showError(error.message || 'Failed to generate transcript');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate transcript';
+      setTranscriptMessage(errorMessage);
+      showError(errorMessage);
 
       // Reset error after delay
       setTimeout(() => {

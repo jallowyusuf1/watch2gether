@@ -1,114 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Link as LinkIcon, Calendar, Eye, Download, FileJson, Music } from 'lucide-react';
-import { db } from '../db/database';
-import type { ShareHistory } from '../services/sharingService';
+import { ArrowLeft, Share2, Link as LinkIcon, Music } from 'lucide-react';
 import { storageService } from '../services/storageService';
-import { collectionService } from '../services/collectionService';
 import { useNotifications } from '../contexts/NotificationContext';
 import VideoCard from '../components/VideoCard';
 import ShareModal from '../components/ShareModal';
 import type { Video } from '../types';
-import type { Collection } from '../types/video.types';
 
 const SharedWithMe = () => {
   const navigate = useNavigate();
-  const { showSuccess, showError } = useNotifications();
-  const [shareHistory, setShareHistory] = useState<ShareHistory[]>([]);
+  const { showError } = useNotifications();
   const [sharedVideos, setSharedVideos] = useState<Video[]>([]);
-  const [sharedCollections, setSharedCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
+  // Load shared videos (for now, just show all videos as a placeholder)
   useEffect(() => {
-    loadShareHistory();
-  }, []);
-
-  const loadShareHistory = async () => {
-    try {
-      setLoading(true);
-      const history = await db.getAllShareHistory();
-      setShareHistory(history);
-
-      // Load shared videos and collections
-      const videoIds = new Set<string>();
-      const collectionIds = new Set<string>();
-
-      history.forEach((share) => {
-        if (share.type === 'video') {
-          videoIds.add(share.itemId);
-        } else if (share.type === 'collection') {
-          collectionIds.add(share.itemId);
-        }
-      });
-
-      // Load videos
-      const videos = await Promise.all(
-        Array.from(videoIds).map(async (id) => {
-          try {
-            return await storageService.getVideo(id);
-          } catch {
-            return null;
-          }
-        })
-      );
-      setSharedVideos(videos.filter(Boolean) as Video[]);
-
-      // Load collections
-      const collections = await Promise.all(
-        Array.from(collectionIds).map(async (id) => {
-          try {
-            return await collectionService.getCollectionById(id);
-          } catch {
-            return null;
-          }
-        })
-      );
-      setSharedCollections(collections.filter(Boolean) as Collection[]);
-    } catch (error) {
-      console.error('Error loading share history:', error);
-      showError('Failed to load shared content');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getShareMethodIcon = (method: ShareHistory['shareMethod']) => {
-    switch (method) {
-      case 'link':
-        return LinkIcon;
-      case 'social':
-        return Share2;
-      case 'email':
-        return LinkIcon;
-      case 'embed':
-        return LinkIcon;
-      case 'file':
-        return FileJson;
-      default:
-        return Share2;
-    }
-  };
-
-  const groupedHistory = shareHistory.reduce((acc, share) => {
-    const date = new Date(share.sharedAt).toDateString();
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date].push(share);
-    return acc;
-  }, {} as Record<string, ShareHistory[]>);
+    const loadVideos = async () => {
+      try {
+        setLoading(true);
+        const allVideos = await storageService.getAllVideos();
+        setSharedVideos(allVideos);
+      } catch (error) {
+        console.error('Error loading videos:', error);
+        showError('Failed to load shared content');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadVideos();
+  }, [showError]);
 
   if (loading) {
     return (
@@ -146,15 +68,7 @@ const SharedWithMe = () => {
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white/80 dark:bg-purple-900/30 backdrop-blur-xl rounded-xl p-6 border border-purple-200 dark:border-purple-500/20">
-            <div className="flex items-center gap-3 mb-2">
-              <Share2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">Total Shares</span>
-            </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{shareHistory.length}</p>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white/80 dark:bg-purple-900/30 backdrop-blur-xl rounded-xl p-6 border border-purple-200 dark:border-purple-500/20">
             <div className="flex items-center gap-3 mb-2">
               <LinkIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -165,10 +79,10 @@ const SharedWithMe = () => {
 
           <div className="bg-white/80 dark:bg-purple-900/30 backdrop-blur-xl rounded-xl p-6 border border-purple-200 dark:border-purple-500/20">
             <div className="flex items-center gap-3 mb-2">
-              <Music className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">Shared Collections</span>
+              <Share2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">Total Content</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{sharedCollections.length}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{sharedVideos.length}</p>
           </div>
         </div>
 
@@ -181,7 +95,7 @@ const SharedWithMe = () => {
                 <VideoCard
                   key={video.id}
                   video={video}
-                  onShare={(v) => {
+                  onClick={(v) => {
                     setSelectedVideo(v);
                     setShowShareModal(true);
                   }}
@@ -191,70 +105,13 @@ const SharedWithMe = () => {
           </div>
         )}
 
-        {/* Share History Timeline */}
-        <div className="bg-white/80 dark:bg-purple-900/30 backdrop-blur-xl rounded-xl p-6 border border-purple-200 dark:border-purple-500/20">
-          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Share History</h2>
-          
-          {Object.keys(groupedHistory).length === 0 ? (
-            <div className="text-center py-12">
-              <Share2 className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No share history yet</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {Object.entries(groupedHistory)
-                .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
-                .map(([date, shares]) => (
-                  <div key={date}>
-                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-                      {new Date(date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </h3>
-                    <div className="space-y-3">
-                      {shares.map((share) => {
-                        const Icon = getShareMethodIcon(share.shareMethod);
-                        return (
-                          <div
-                            key={share.id}
-                            className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700"
-                          >
-                            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                              <Icon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-gray-900 dark:text-white">
-                                {share.type === 'video' ? 'Video' : share.type === 'collection' ? 'Collection' : 'Playlist'}
-                              </p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Shared via {share.shareMethod}
-                                {share.recipient && ` to ${share.recipient}`}
-                              </p>
-                              <div className="flex items-center gap-4 mt-1 text-xs text-gray-500 dark:text-gray-500">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {formatDate(share.sharedAt)}
-                                </div>
-                                {share.viewCount !== undefined && (
-                                  <div className="flex items-center gap-1">
-                                    <Eye className="w-3 h-3" />
-                                    {share.viewCount} views
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
+        {sharedVideos.length === 0 && (
+          <div className="bg-white/80 dark:bg-purple-900/30 backdrop-blur-xl rounded-xl p-12 border border-purple-200 dark:border-purple-500/20 text-center">
+            <Share2 className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">No shared content yet</p>
+            <p className="text-gray-500 dark:text-gray-500 text-sm">Content shared with you will appear here</p>
+          </div>
+        )}
       </div>
 
       {/* Share Modal */}
@@ -265,7 +122,10 @@ const SharedWithMe = () => {
             setShowShareModal(false);
             setSelectedVideo(null);
           }}
-          video={selectedVideo}
+          videoTitle={selectedVideo.title}
+          videoDescription={selectedVideo.description}
+          videoUrl={selectedVideo.url}
+          shareUrl={window.location.origin + `/video/${selectedVideo.id}`}
         />
       )}
     </div>

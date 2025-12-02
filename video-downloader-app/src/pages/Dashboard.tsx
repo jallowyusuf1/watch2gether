@@ -33,6 +33,8 @@ const Dashboard = () => {
     totalStorage: 0,
     youtubeCount: 0,
     tiktokCount: 0,
+    totalTranscripts: 0,
+    totalDuration: 0,
   });
 
   // Register keyboard shortcut to focus download input
@@ -55,12 +57,16 @@ const Dashboard = () => {
         const totalStorage = await storageService.getTotalStorageUsed();
         const youtubeVideos = allVideos.filter(v => v.platform === 'youtube');
         const tiktokVideos = allVideos.filter(v => v.platform === 'tiktok');
+        const videosWithTranscripts = allVideos.filter(v => v.transcript && v.transcript.length > 0);
+        const totalDuration = allVideos.reduce((acc, v) => acc + (v.duration || 0), 0);
 
         setStats({
           totalVideos: allVideos.length,
           totalStorage,
           youtubeCount: youtubeVideos.length,
           tiktokCount: tiktokVideos.length,
+          totalTranscripts: videosWithTranscripts.length,
+          totalDuration: totalDuration,
         });
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -100,52 +106,80 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
-          <div className="bubble-card p-6">
+        {/* Stats Grid - 6 Widgets */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+          <div className="bubble-card p-8">
             <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-purple-500/20 rounded-lg">
-                <Download className="w-6 h-6 text-purple-400" />
+              <div className="p-4 bg-purple-500/20 rounded-lg">
+                <Download className="w-8 h-8 text-purple-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-300">Total Videos</p>
-                <p className="text-3xl font-bold text-white">{stats.totalVideos}</p>
+                <p className="text-sm text-gray-300 mb-1">Total Videos</p>
+                <p className="text-4xl font-bold text-white">{stats.totalVideos}</p>
               </div>
             </div>
           </div>
 
-          <div className="bubble-card p-6">
+          <div className="bubble-card p-8">
             <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-purple-500/20 rounded-lg">
-                <HardDrive className="w-6 h-6 text-purple-400" />
+              <div className="p-4 bg-purple-500/20 rounded-lg">
+                <HardDrive className="w-8 h-8 text-purple-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-300">Storage Used</p>
-                <p className="text-3xl font-bold text-white">{formatStorage(stats.totalStorage)}</p>
+                <p className="text-sm text-gray-300 mb-1">Storage Used</p>
+                <p className="text-4xl font-bold text-white">{formatStorage(stats.totalStorage)}</p>
               </div>
             </div>
           </div>
 
-          <div className="bubble-card p-6">
+          <div className="bubble-card p-8">
             <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-red-500/20 rounded-lg">
-                <Youtube className="w-6 h-6 text-red-400" />
+              <div className="p-4 bg-red-500/20 rounded-lg">
+                <Youtube className="w-8 h-8 text-red-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-300">YouTube</p>
-                <p className="text-3xl font-bold text-white">{stats.youtubeCount}</p>
+                <p className="text-sm text-gray-300 mb-1">YouTube Videos</p>
+                <p className="text-4xl font-bold text-white">{stats.youtubeCount}</p>
               </div>
             </div>
           </div>
 
-          <div className="bubble-card p-6">
+          <div className="bubble-card p-8">
             <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-gray-500/20 rounded-lg">
-                <Music className="w-6 h-6 text-white" />
+              <div className="p-4 bg-gray-500/20 rounded-lg">
+                <Music className="w-8 h-8 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-300">TikTok</p>
-                <p className="text-3xl font-bold text-white">{stats.tiktokCount}</p>
+                <p className="text-sm text-gray-300 mb-1">TikTok Videos</p>
+                <p className="text-4xl font-bold text-white">{stats.tiktokCount}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bubble-card p-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-4 bg-blue-500/20 rounded-lg">
+                <FileText className="w-8 h-8 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-300 mb-1">Total Transcripts</p>
+                <p className="text-4xl font-bold text-white">
+                  {stats.totalTranscripts}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bubble-card p-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-4 bg-green-500/20 rounded-lg">
+                <Clock className="w-8 h-8 text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-300 mb-1">Total Duration</p>
+                <p className="text-4xl font-bold text-white">
+                  {Math.round(stats.totalDuration / 60)}m
+                </p>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { Innertube } from 'youtubei.js/web';
 import { parseVideoUrl } from '../utils/urlParser';
 import type { VideoMetadata } from '../types';
 
@@ -63,12 +63,8 @@ export const youtubeService = {
   },
 
   /**
-   * Get video metadata from YouTube
-   * 
-   * This function requires either:
-   * - YouTube Data API v3 key in VITE_YOUTUBE_API_KEY environment variable
-   * - A backend proxy endpoint at VITE_YOUTUBE_API_PROXY (if set)
-   * 
+   * Get video metadata from YouTube using YouTube.js (no backend required)
+   *
    * @param urlOrId - YouTube video URL or video ID
    * @returns Promise that resolves to video metadata
    * @throws Error for various failure scenarios (not found, private, age-restricted, network errors)
@@ -77,157 +73,71 @@ export const youtubeService = {
     const videoId = this.extractVideoId(urlOrId);
     const isShort = this.isShort(urlOrId);
 
-    const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
-    // Use environment variable or default to localhost server
-    const apiProxy = import.meta.env.VITE_YOUTUBE_API_PROXY || 
-                    'http://localhost:3000/api/youtube';
-
     try {
-      let response;
+      console.log('[YouTube Service] Fetching metadata for:', videoId);
 
-      // Prefer proxy if available, otherwise use API key
-      if (apiProxy && !apiProxy.includes('undefined')) {
-        // Use backend proxy endpoint
-        console.log('[YouTube Service] Using proxy:', apiProxy);
-        response = await axios.get(apiProxy, {
-          params: {
-            id: videoId,
-          },
-          timeout: 10000,
-          validateStatus: (status) => status < 500, // Don't throw on 4xx errors
-        });
-        
-        // Check if server returned an error response (4xx status or error object)
-        if (response.status >= 400 || (response.data && response.data.error)) {
-          const serverError = response.data;
-          const errorMessage = serverError?.message || serverError?.error || 'Unknown error';
-          const errorReason = serverError?.reason;
-          
-          // Map server error reasons to user-friendly messages
-          if (errorReason === 'quotaExceeded') {
-            throw new Error('YouTube API quota exceeded. The daily limit has been reached. Please try again tomorrow or use a different API key.');
-          } else if (errorReason === 'invalidCredentials') {
-            throw new Error('Invalid YouTube API key. Please check your API key configuration in the .env file.');
-          } else if (errorReason === 'videoNotFound') {
-            throw new Error('Video not found. The video may have been deleted or is unavailable.');
-          } else if (errorReason === 'forbidden') {
-            throw new Error('Access denied. The video may be private or restricted.');
-          }
-          
-          // Use the server's error message
-          throw new Error(errorMessage);
-        }
-      } else if (apiKey) {
-        // Use YouTube Data API v3 directly
-        const apiUrl = 'https://www.googleapis.com/youtube/v3/videos';
-        response = await axios.get(apiUrl, {
-          params: {
-            id: videoId,
-            key: apiKey,
-            part: 'snippet,contentDetails,statistics',
-          },
-          timeout: 10000,
-        });
-      } else {
-        throw new Error(
-          'YouTube API key or proxy endpoint not configured. ' +
-          'Please set VITE_YOUTUBE_API_KEY or VITE_YOUTUBE_API_PROXY in your .env file.'
-        );
+      // Create YouTube client
+      const youtube = await Innertube.create({
+        cache: new Map(),
+        fetch: fetch.bind(globalThis)
+      });
+
+      // Get video info
+      const videoInfo = await youtube.getInfo(videoId);
+
+      if (!videoInfo || !videoInfo.basic_info) {
+        throw new Error('Video not found or unavailable');
       }
 
-      // Handle YouTube API response
-      // Check if response is an error (from our server - 4xx status or error object without items)
-      if (response.status >= 400 || (response.data && response.data.error && !response.data.items)) {
-        // This is an error response from our server
-        const serverError = response.data;
-        const errorMessage = serverError?.message || serverError?.error || 'Unknown error from server';
-        const errorReason = serverError?.reason;
-        
-        // Map error reasons to user-friendly messages
-        if (errorReason === 'quotaExceeded') {
-          throw new Error('YouTube API quota exceeded. The daily limit has been reached. Please try again tomorrow or use a different API key.');
-        } else if (errorReason === 'invalidCredentials') {
-          throw new Error('Invalid YouTube API key. Please check your API key configuration in the .env file.');
-        }
-        
-        throw new Error(errorMessage);
+      const basicInfo = videoInfo.basic_info;
+
+      // Get best thumbnail
+      const thumbnails = basicInfo.thumbnail;
+      let thumbnail = '';
+      if (thumbnails && thumbnails.length > 0) {
+        // Get the highest quality thumbnail
+        const bestThumb = thumbnails[thumbnails.length - 1];
+        thumbnail = bestThumb.url || '';
       }
-      
-      // Both proxy and direct API return the same YouTube Data API v3 format
-      return this.parseYouTubeApiResponse(response.data, videoId, isShort);
+
+      return {
+        videoId,
+        title: basicInfo.title || 'Untitled',
+        description: basicInfo.short_description || '',
+        thumbnail,
+        duration: basicInfo.duration || 0,
+        author: basicInfo.author || 'Unknown Channel',
+        viewCount: basicInfo.view_count || 0,
+        uploadDate: new Date(basicInfo.publish_date || Date.now()),
+        isShort,
+      };
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        // Handle specific HTTP errors
-        if (error.response) {
-          const status = error.response.status;
-          const data = error.response.data;
+      console.error('[YouTube Service] Error fetching metadata:', error);
 
-          if (status === 404) {
-            throw new Error('Video not found. The video may have been deleted or the URL is incorrect.');
-          }
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
 
-          if (status === 403) {
-            // Check for specific error reasons
-            if (data?.error?.errors?.[0]?.reason === 'private') {
-              throw new Error('This video is private and cannot be accessed.');
-            }
-            if (data?.error?.errors?.[0]?.reason === 'restricted') {
-              throw new Error('This video is age-restricted and requires authentication.');
-            }
-            throw new Error('Access denied. Please check your API key permissions.');
-          }
-
-          if (status === 400) {
-            throw new Error('Invalid request. Please check the video URL or ID.');
-          }
-
-          // Provide more detailed error message
-          const errorReason = data?.error?.errors?.[0]?.reason;
-          let errorMessage = data?.error?.message || 'Unknown error';
-          
-          // Map common error reasons to user-friendly messages
-          if (errorReason === 'quotaExceeded') {
-            errorMessage = 'YouTube API quota exceeded. Please try again later.';
-          } else if (errorReason === 'invalidCredentials') {
-            errorMessage = 'Invalid YouTube API key. Please check your configuration.';
-          } else if (errorReason === 'videoNotFound') {
-            errorMessage = 'Video not found. The video may have been deleted or is unavailable.';
-          } else if (errorReason === 'forbidden') {
-            errorMessage = 'Access denied. The video may be private or restricted.';
-          } else if (errorMessage === 'Unknown error') {
-            errorMessage = `YouTube API error: ${errorReason || 'Unknown error occurred'}`;
-          }
-          
-          throw new Error(errorMessage);
+        if (errorMessage.includes('not found') || errorMessage.includes('404')) {
+          throw new Error('Video not found. The video may have been deleted or the URL is incorrect.');
         }
 
-        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-          throw new Error('Request timeout. Please check your internet connection and try again.');
+        if (errorMessage.includes('private') || errorMessage.includes('403')) {
+          throw new Error('This video is private or unavailable');
         }
 
-        if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-          throw new Error('Network error. Unable to connect to YouTube API.');
+        if (errorMessage.includes('age') || errorMessage.includes('restricted')) {
+          throw new Error('This video is age-restricted');
         }
 
-        throw new Error(`Network error: ${error.message}`);
+        throw error;
       }
 
-      // Handle unknown axios errors
-      throw new Error(`YouTube API error: ${error.message || 'Unknown network error'}`);
+      throw new Error('Failed to fetch video metadata. Please check the URL and try again.');
     }
-
-    // Handle non-axios errors
-    if (err instanceof Error) {
-      // Re-throw if it's already our custom error
-      throw err;
-    }
-
-    // Generic error fallback
-    throw new Error(`Failed to fetch video metadata: ${err instanceof Error ? err.message : 'Unknown error'}`);
   },
 
   /**
-   * Parse YouTube Data API v3 response
+   * Parse YouTube Data API v3 response (DEPRECATED - now using YouTube.js)
    * @private
    */
   parseYouTubeApiResponse(data: any, videoId: string, isShort: boolean): YouTubeVideoMetadata {
@@ -265,7 +175,7 @@ export const youtubeService = {
   },
 
   /**
-   * Parse backend proxy response
+   * Parse backend proxy response (DEPRECATED - now using YouTube.js)
    * @private
    */
   parseProxyResponse(data: any, videoId: string, isShort: boolean): YouTubeVideoMetadata {
@@ -299,13 +209,17 @@ export const youtubeService = {
   },
 
   /**
-   * Get available quality options for YouTube videos
-   * @param videoId - YouTube video ID or URL
+   * Get available qualities for a YouTube video
+   * @param videoId - YouTube video ID
    * @param duration - Video duration in seconds (for file size estimation)
-   * @param isShort - Whether the video is a YouTube Short
+   * @param isShort - Whether the video is a Short
    * @returns Promise that resolves to array of quality options
    */
-  async getAvailableQualities(videoId: string, duration: number = 0, isShort: boolean = false): Promise<Array<{
+  async getAvailableQualities(
+    videoId: string,
+    duration: number = 0,
+    isShort: boolean = false
+  ): Promise<Array<{
     resolution: string;
     width: number;
     height: number;
@@ -315,40 +229,40 @@ export const youtubeService = {
     recommended?: boolean;
     label?: string;
   }>> {
-    // Extract video ID if URL was provided
-    const id = this.extractVideoId(videoId);
-
-    // Define quality options for regular YouTube videos
-    const regularQualities = [
-      { resolution: '2160p', width: 3840, height: 2160, bitrate: 50000, label: '4K Ultra HD' },
-      { resolution: '1440p', width: 2560, height: 1440, bitrate: 24000, label: '2K Quad HD' },
-      { resolution: '1080p', width: 1920, height: 1080, bitrate: 8000, label: 'Full HD' },
-      { resolution: '720p', width: 1280, height: 720, bitrate: 5000, label: 'HD' },
-      { resolution: '480p', width: 854, height: 480, bitrate: 2500, label: 'SD' },
+    // Standard YouTube video qualities
+    const standardQualities = [
+      { resolution: '2160p', width: 3840, height: 2160, bitrate: 15000, label: '4K' },
+      { resolution: '1440p', width: 2560, height: 1440, bitrate: 9000, label: '2K' },
+      { resolution: '1080p', width: 1920, height: 1080, bitrate: 5000, label: 'Full HD' },
+      { resolution: '720p', width: 1280, height: 720, bitrate: 2500, label: 'HD' },
+      { resolution: '480p', width: 854, height: 480, bitrate: 1500, label: 'SD' },
       { resolution: '360p', width: 640, height: 360, bitrate: 1000, label: 'Low' },
+      { resolution: '240p', width: 426, height: 240, bitrate: 500, label: 'Very Low' },
     ];
 
-    // Define quality options for YouTube Shorts (vertical format)
+    // YouTube Shorts are vertical videos (9:16 aspect ratio)
     const shortsQualities = [
-      { resolution: '1080p', width: 1080, height: 1920, bitrate: 8000, label: 'Full HD' },
-      { resolution: '720p', width: 720, height: 1280, bitrate: 5000, label: 'HD' },
-      { resolution: '480p', width: 480, height: 854, bitrate: 2500, label: 'SD' },
+      { resolution: '1080p', width: 1080, height: 1920, bitrate: 5000, label: 'Full HD' },
+      { resolution: '720p', width: 720, height: 1280, bitrate: 2500, label: 'HD' },
+      { resolution: '480p', width: 480, height: 854, bitrate: 1500, label: 'SD' },
       { resolution: '360p', width: 360, height: 640, bitrate: 1000, label: 'Low' },
     ];
 
-    const qualities = isShort ? shortsQualities : regularQualities;
+    const qualities = isShort ? shortsQualities : standardQualities;
 
-    // In a real implementation, you would make an API call to get actual available formats
-    // For now, we'll simulate it by making most qualities available, with 1080p as recommended
-    const availableQualities = qualities.map((q, index) => {
+    const availableQualities = qualities.map((q) => {
       // Estimate file size: (bitrate in kbps * duration in seconds) / 8 = bytes
       const estimatedSize = (q.bitrate * duration) / 8;
 
-      // For YouTube, typically 1080p and below are commonly available
-      // 4K and 1440p might not always be available
+      // Shorts don't have 4K typically
       let available = true;
-      if (q.resolution === '2160p' || q.resolution === '1440p') {
-        available = Math.random() > 0.3; // Simulate that 4K/1440p might not always be available
+      if (isShort && (q.resolution === '2160p' || q.resolution === '1440p')) {
+        available = false;
+      }
+
+      // 4K and 2K might not always be available for regular videos
+      if (!isShort && (q.resolution === '2160p' || q.resolution === '1440p')) {
+        available = Math.random() > 0.6; // Simulate availability
       }
 
       return {
@@ -358,7 +272,7 @@ export const youtubeService = {
         fileSize: Math.round(estimatedSize),
         bitrate: q.bitrate,
         available,
-        recommended: q.resolution === '1080p', // 1080p is recommended
+        recommended: q.resolution === '1080p',
         label: q.label,
       };
     });
@@ -367,79 +281,22 @@ export const youtubeService = {
   },
 
   /**
-   * Download video from YouTube
-   * 
-   * NOTE: Direct download from YouTube is restricted by CORS.
-   * This function is a placeholder and should be implemented using:
-   * - A backend service with youtube-dl or yt-dlp
-   * - A serverless function that handles the download
-   * - A third-party service that provides download capabilities
-   * 
+   * Download video from YouTube (DEPRECATED - requires backend)
    * @param videoId - YouTube video ID
-   * @param quality - Video quality (e.g., '1080p', '720p')
-   * @param format - Video format ('mp4' or 'mp3')
+   * @param quality - Desired quality (e.g., '1080p')
+   * @param format - Desired format ('mp4' or 'mp3')
    * @returns Promise that resolves to video blob data
    * @throws Error if download fails
    */
-  async downloadVideo(
-    videoId: string,
-    quality: string = '720p',
-    format: 'mp4' | 'mp3' = 'mp4'
-  ): Promise<Blob> {
-    // Use environment variable or default to localhost server
-    const downloadProxy = import.meta.env.VITE_YOUTUBE_DOWNLOAD_PROXY || 
-                         'http://localhost:3000/api/youtube/download';
-
-    console.log('[YouTube Service] Download proxy:', downloadProxy);
-
-    try {
-      const response = await axios.get(downloadProxy, {
-        params: {
-          id: videoId,
-          quality,
-          format,
-        },
-        responseType: 'blob',
-        timeout: 300000, // 5 minutes timeout for large files
-        onDownloadProgress: (progressEvent) => {
-          // Progress can be handled by the caller
-          if (progressEvent.total) {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            // You can emit progress events here if needed
-          }
-        },
-      });
-
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          const status = error.response.status;
-          if (status === 404) {
-            throw new Error('Video not found or unavailable for download.');
-          }
-          if (status === 403) {
-            throw new Error('Access denied. The video may be private or age-restricted.');
-          }
-          throw new Error(`Download failed: ${error.response.statusText}`);
-        }
-
-        if (error.code === 'ECONNABORTED') {
-          throw new Error('Download timeout. The file may be too large or the connection is slow.');
-        }
-
-        throw new Error(`Network error during download: ${error.message}`);
-      }
-
-      throw new Error('An unexpected error occurred during video download.');
-    }
+  async downloadVideo(videoId: string, quality: string = '1080p', format: 'mp4' | 'mp3' = 'mp4'): Promise<Blob> {
+    throw new Error(
+      'Direct video download is not available. This feature requires a backend server. ' +
+      'Please start the server by running "npm run server" in a terminal.'
+    );
   },
 
   /**
-   * Get video transcript/captions from YouTube
-   * Uses youtube-transcript API to fetch subtitles/captions
+   * Get video transcript/captions from YouTube using YouTube.js
    *
    * @param urlOrId - YouTube video URL or video ID
    * @returns Promise that resolves to transcript text
@@ -449,69 +306,41 @@ export const youtubeService = {
     const videoId = this.extractVideoId(urlOrId);
 
     try {
-      // Use youtube-transcript-api via a CORS proxy
-      // This API doesn't require authentication and works for most public videos
-      const corsProxy = 'https://corsproxy.io/?';
-      const transcriptApiUrl = `${corsProxy}https://www.youtube.com/watch?v=${videoId}`;
+      console.log('[YouTube Service] Fetching transcript for:', videoId);
 
-      // Fetch the video page to extract caption tracks
-      const response = await axios.get(transcriptApiUrl, {
-        timeout: 15000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+      // Create YouTube client
+      const youtube = await Innertube.create({
+        cache: new Map(),
+        fetch: fetch.bind(globalThis)
       });
 
-      const html = response.data;
+      // Get video info
+      const videoInfo = await youtube.getInfo(videoId);
 
-      // Extract caption tracks from the page
-      const captionTracksMatch = html.match(/"captions":\{"playerCaptionsTracklistRenderer":\{"captionTracks":(\[.*?\])/);
+      if (!videoInfo) {
+        throw new Error('Video not found');
+      }
 
-      if (!captionTracksMatch) {
+      // Get transcript
+      const transcriptData = await videoInfo.getTranscript();
+
+      if (!transcriptData || !transcriptData.transcript) {
         throw new Error('No captions available for this video');
       }
 
-      const captionTracks = JSON.parse(captionTracksMatch[1]);
+      // Format transcript
+      const transcript = transcriptData.transcript;
+      const segments = transcript.content?.body?.initial_segments;
 
-      if (!captionTracks || captionTracks.length === 0) {
-        throw new Error('No captions available for this video');
+      if (!segments || segments.length === 0) {
+        throw new Error('Could not extract transcript text');
       }
 
-      // Prefer English captions, fallback to first available
-      let captionUrl = captionTracks.find((track: any) =>
-        track.languageCode === 'en' || track.languageCode === 'en-US'
-      )?.baseUrl || captionTracks[0]?.baseUrl;
-
-      if (!captionUrl) {
-        throw new Error('Could not find caption URL');
-      }
-
-      // Fetch the caption data
-      const captionResponse = await axios.get(`${corsProxy}${captionUrl}`, {
-        timeout: 10000,
-      });
-
-      // Parse XML caption data
-      const captionXml = captionResponse.data;
-
-      // Extract text from XML
-      const textMatches = captionXml.matchAll(/<text[^>]*>(.*?)<\/text>/g);
+      // Extract text from segments
       const transcriptLines: string[] = [];
-
-      for (const match of textMatches) {
-        // Decode HTML entities and clean up the text
-        const text = match[1]
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .replace(/&nbsp;/g, ' ')
-          .replace(/<[^>]*>/g, '') // Remove any HTML tags
-          .trim();
-
-        if (text) {
-          transcriptLines.push(text);
+      for (const segment of segments) {
+        if (segment.snippet && segment.snippet.text) {
+          transcriptLines.push(segment.snippet.text);
         }
       }
 
@@ -519,27 +348,22 @@ export const youtubeService = {
         throw new Error('Could not extract transcript text');
       }
 
-      // Join all lines with newlines
       return transcriptLines.join('\n');
 
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-          throw new Error('Transcript request timeout. Please try again.');
-        }
-
-        if (error.response?.status === 404) {
-          throw new Error('Video not found or captions unavailable');
-        }
-
-        if (error.response?.status === 403) {
-          throw new Error('Access denied. The video may be private or age-restricted.');
-        }
-
-        throw new Error(`Network error while fetching transcript: ${error.message}`);
-      }
+      console.error('[YouTube Service] Error fetching transcript:', error);
 
       if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+
+        if (errorMessage.includes('no captions') || errorMessage.includes('not available')) {
+          throw new Error('No captions available for this video');
+        }
+
+        if (errorMessage.includes('not found') || errorMessage.includes('404')) {
+          throw new Error('Video not found or unavailable');
+        }
+
         throw error;
       }
 

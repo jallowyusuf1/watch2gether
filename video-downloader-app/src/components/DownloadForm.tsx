@@ -489,7 +489,7 @@ const DownloadForm = forwardRef<DownloadFormRef>((props, ref) => {
             className={`w-full px-4 py-3 rounded-lg border-2 
                      focus:outline-none focus:ring-2 
                      dark:bg-gray-700 dark:text-white
-                     resize-none transition-all duration-200 min-h-[100px]
+                     resize-none transition-colors duration-200 min-h-[100px]
                      disabled:opacity-50 disabled:cursor-not-allowed
                      ${
                        urlValidation === 'valid'

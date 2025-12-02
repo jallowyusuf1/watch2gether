@@ -38,5 +38,12 @@ module.exports = {
     'react/react-in-jsx-scope': 'off', // Not needed for React 17+
     // TypeScript rules
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'warn',
+    'no-empty': 'warn',
+    // Import validation rules
+    'no-unused-vars': ['warn', { 
+      varsIgnorePattern: '^_',
+      argsIgnorePattern: '^_'
+    }],
   },
 };

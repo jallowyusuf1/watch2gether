@@ -423,7 +423,7 @@ class AudioExtractor {
  * 
  * @example
  * ```typescript
- * import { audioService } from './services/audioService';
+ * import { audioService } from './audioService';
  * 
  * // Initialize (happens automatically on first use)
  * await audioService.initialize();

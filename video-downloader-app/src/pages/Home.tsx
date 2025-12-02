@@ -130,17 +130,54 @@ const Home = () => {
         </div>
 
         <div className="max-w-5xl mx-auto text-center relative z-20">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight scroll-animate" data-section-id="hero-title">
-            <span className="text-white drop-shadow-lg">Unlocking the </span>
-            <Sparkles className="inline w-8 h-8 md:w-10 md:h-10 text-purple-400 animate-pulse" />
-            <span className="text-white drop-shadow-lg"> potential</span>
+          <motion.h1 
+            className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <motion.span 
+              className="text-white drop-shadow-lg"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Download Videos from{' '}
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4, type: "spring", stiffness: 200 }}
+            >
+              <Sparkles className="inline w-8 h-8 md:w-10 md:h-10 text-purple-400 animate-pulse" />
+            </motion.span>
+            <motion.span 
+              className="text-white drop-shadow-lg"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              {' '}YouTube & TikTok
+            </motion.span>
             <br />
-            <span className="text-white drop-shadow-lg">of technology</span>
-          </h1>
+            <motion.span 
+              className="text-white drop-shadow-lg bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              Fast, Free & Easy
+            </motion.span>
+          </motion.h1>
 
-          <p className="text-lg md:text-xl text-white/90 mb-10 max-w-3xl mx-auto scroll-animate leading-relaxed drop-shadow-md" data-section-id="hero-desc">
-            We empower businesses to succeed in the digital age with IT solutions that streamline operations, enhance efficiency, and drive growth.
-          </p>
+          <motion.p 
+            className="text-lg md:text-xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed drop-shadow-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1 }}
+          >
+            Download your favorite videos from YouTube and TikTok in high quality. Save them offline, generate transcripts, and manage your video library all in one place.
+          </motion.p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 scroll-animate" data-section-id="hero-buttons">
             <button
@@ -153,13 +190,18 @@ const Home = () => {
             >
               Let's start
             </button>
-            <button
-              onClick={() => setVideoModalOpen(true)}
+            <motion.button
+              onClick={() => {
+                console.log('Play video button clicked');
+                setVideoModalOpen(true);
+              }}
               className="bubble-btn-secondary flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Play video
               <Play className="w-5 h-5" />
-            </button>
+            </motion.button>
           </div>
 
           {/* Video Modal */}
