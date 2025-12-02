@@ -7,8 +7,6 @@ import {
   ArrowRight,
   Play,
   Sparkles,
-  TrendingUp,
-  Clock,
   Youtube,
   Music,
   Zap,
@@ -28,7 +26,6 @@ const Home = () => {
   const { showSuccess, showError } = useNotifications();
   const [recentVideos, setRecentVideos] = useState<Video[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
-  const [visibleElements, setVisibleElements] = useState<Set<string>>(new Set());
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   
   const heroRef = useRef<HTMLDivElement>(null);
@@ -36,8 +33,6 @@ const Home = () => {
   const statsRef = useRef<HTMLDivElement>(null);
   const videosRef = useRef<HTMLDivElement>(null);
   const aboutRef = useRef<HTMLDivElement>(null);
-
-  const isDark = settings.theme === 'dark' || (settings.theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   // Load recent videos
   useEffect(() => {
@@ -262,26 +257,26 @@ const Home = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {/* Card 1 - Dark */}
           <div className="bubble-card p-8 scroll-animate" data-section-id="stat-1">
-            <h2 className="text-5xl font-bold text-white mb-4">7k+</h2>
-            <p className="text-sm text-gray-300">Trusted, satisfied<br />customers.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">100%</h2>
+            <p className="text-sm text-gray-300">Free to use<br />no hidden costs.</p>
           </div>
 
           {/* Card 2 - Purple Accent */}
           <div className="bubble-card p-8 scroll-animate ring-2 ring-purple-500/50" data-section-id="stat-2">
-            <h2 className="text-5xl font-bold text-white mb-4">8+</h2>
-            <p className="text-sm text-gray-300">Expertise driving<br />business success.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">HD+</h2>
+            <p className="text-sm text-gray-300">High quality downloads<br />up to 4K resolution.</p>
           </div>
 
           {/* Card 3 - Dark */}
           <div className="bubble-card p-8 scroll-animate" data-section-id="stat-3">
-            <h2 className="text-5xl font-bold text-white mb-4">24/7</h2>
-            <p className="text-sm text-gray-300">Support available<br />to assist you.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">2</h2>
+            <p className="text-sm text-gray-300">Platforms supported<br />YouTube & TikTok.</p>
           </div>
 
           {/* Card 4 - Dark */}
           <div className="bubble-card p-8 scroll-animate" data-section-id="stat-4">
-            <h2 className="text-5xl font-bold text-white mb-4">50+</h2>
-            <p className="text-sm text-gray-300">Successful projects<br />delivered.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">Fast</h2>
+            <p className="text-sm text-gray-300">Lightning quick downloads<br />in seconds.</p>
           </div>
         </div>
       </div>

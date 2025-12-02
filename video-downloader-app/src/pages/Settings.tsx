@@ -237,7 +237,7 @@ const Settings = () => {
                 <select
                   id="default-quality"
                   value={settings.defaultQuality}
-                  onChange={(e) => updateSetting('defaultQuality', e.target.value as any)}
+                  onChange={(e) => updateSetting('defaultQuality', e.target.value as '2160p' | '1440p' | '1080p' | '720p' | '480p' | '360p')}
                   className="w-full px-4 py-2 border-2 border-purple-500/20 rounded-lg bg-purple-900/30 backdrop-blur-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                 >
                   <option value="2160p">2160p (4K Ultra HD)</option>
@@ -264,7 +264,7 @@ const Settings = () => {
                       name="default-format"
                       value="mp4"
                       checked={settings.defaultFormat === 'mp4'}
-                      onChange={(e) => updateSetting('defaultFormat', e.target.value as any)}
+                      onChange={(e) => updateSetting('defaultFormat', e.target.value as 'mp4' | 'mp3')}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 border-gray-300 dark:border-gray-600 cursor-pointer"
                     />
                     <span className="text-gray-200 font-medium group-hover:text-purple-400 transition-colors">
@@ -277,7 +277,7 @@ const Settings = () => {
                       name="default-format"
                       value="mp3"
                       checked={settings.defaultFormat === 'mp3'}
-                      onChange={(e) => updateSetting('defaultFormat', e.target.value as any)}
+                      onChange={(e) => updateSetting('defaultFormat', e.target.value as 'mp4' | 'mp3')}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 border-gray-300 dark:border-gray-600 cursor-pointer"
                     />
                     <span className="text-gray-200 font-medium group-hover:text-purple-400 transition-colors">
@@ -462,7 +462,7 @@ const Settings = () => {
                 <select
                   id="language"
                   value={settings.language}
-                  onChange={(e) => updateSetting('language', e.target.value as any)}
+                  onChange={(e) => updateSetting('language', e.target.value as string)}
                   className="w-full px-4 py-2 border-2 border-purple-500/20 rounded-lg bg-purple-900/30 backdrop-blur-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                 >
                   <option value="en">English</option>
@@ -649,6 +649,32 @@ const Settings = () => {
                     Import Settings
                   </button>
                 </div>
+              </div>
+
+              {/* History & Backup Links */}
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-3">
+                  Data Management
+                </label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="flex-1 py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Database className="w-4 h-4" />
+                    View History
+                  </button>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FileUp className="w-4 h-4" />
+                    Backup & Restore
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-gray-400">
+                  Access download history and backup/restore your data from the dashboard
+                </p>
               </div>
 
               {/* Export Logs */}
