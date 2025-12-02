@@ -137,7 +137,7 @@ const Home = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Download Videos from{' '}
+              Unlocking the{' '}
             </motion.span>
             <motion.span
               initial={{ opacity: 0, scale: 0 }}
@@ -152,16 +152,16 @@ const Home = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              {' '}YouTube & TikTok
+              {' '}potential
             </motion.span>
             <br />
             <motion.span 
-              className="text-white drop-shadow-lg bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent"
+              className="text-white drop-shadow-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              Fast, Free & Easy
+              of technology
             </motion.span>
           </motion.h1>
 
@@ -171,7 +171,7 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1 }}
           >
-            Download your favorite videos from YouTube and TikTok in high quality. Save them offline, generate transcripts, and manage your video library all in one place.
+            We empower businesses to succeed in the digital age with IT solutions that streamline operations, enhance efficiency, and drive growth.
           </motion.p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 scroll-animate" data-section-id="hero-buttons">
@@ -257,26 +257,26 @@ const Home = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {/* Card 1 - Dark */}
           <div className="bubble-card p-8 scroll-animate" data-section-id="stat-1">
-            <h2 className="text-5xl font-bold text-white mb-4">100%</h2>
-            <p className="text-sm text-gray-300">Free to use<br />no hidden costs.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">7k+</h2>
+            <p className="text-sm text-gray-300">Trusted, satisfied<br />customers.</p>
           </div>
 
           {/* Card 2 - Purple Accent */}
           <div className="bubble-card p-8 scroll-animate ring-2 ring-purple-500/50" data-section-id="stat-2">
-            <h2 className="text-5xl font-bold text-white mb-4">HD+</h2>
-            <p className="text-sm text-gray-300">High quality downloads<br />up to 4K resolution.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">8+</h2>
+            <p className="text-sm text-gray-300">Expertise driving<br />business success.</p>
           </div>
 
           {/* Card 3 - Dark */}
           <div className="bubble-card p-8 scroll-animate" data-section-id="stat-3">
-            <h2 className="text-5xl font-bold text-white mb-4">2</h2>
-            <p className="text-sm text-gray-300">Platforms supported<br />YouTube & TikTok.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">24/7</h2>
+            <p className="text-sm text-gray-300">Support available<br />to assist you.</p>
           </div>
 
           {/* Card 4 - Dark */}
           <div className="bubble-card p-8 scroll-animate" data-section-id="stat-4">
-            <h2 className="text-5xl font-bold text-white mb-4">Fast</h2>
-            <p className="text-sm text-gray-300">Lightning quick downloads<br />in seconds.</p>
+            <h2 className="text-5xl font-bold text-white mb-4">50+</h2>
+            <p className="text-sm text-gray-300">Successful projects<br />delivered.</p>
           </div>
         </div>
       </div>
