@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Download, 
   FileText, 
   ArrowRight,
-  Play,
   Sparkles,
   Youtube,
   Music,
@@ -14,7 +13,6 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import VideoCard from '../components/VideoCard';
-import { AIVideoPlayer } from '../components/AIVideoPlayer';
 import { storageService } from '../services/storageService';
 import { useSettings } from '../contexts/SettingsContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -27,7 +25,6 @@ const Home = () => {
   const [recentVideos, setRecentVideos] = useState<Video[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [visibleElements, setVisibleElements] = useState<Set<string>>(new Set());
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
   
   const heroRef = useRef<HTMLDivElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -186,67 +183,7 @@ const Home = () => {
             >
               Let's start
             </button>
-            <motion.button
-              onClick={() => {
-                console.log('Play video button clicked');
-                setVideoModalOpen(true);
-              }}
-              className="bubble-btn-secondary flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Play video
-              <Play className="w-5 h-5" />
-            </motion.button>
           </div>
-
-          {/* Video Modal */}
-          <AnimatePresence>
-            {videoModalOpen && (
-              <>
-                {/* Backdrop Blur - same as notifications modal */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/30 backdrop-blur-md z-[45]"
-                  onClick={() => {
-                    setVideoModalOpen(false);
-                  }}
-                />
-                {/* Modal Content */}
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
-                >
-                  <div 
-                    className="relative max-w-5xl w-full bubble-card p-2 pointer-events-auto" 
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => {
-                        setVideoModalOpen(false);
-                      }}
-                      className="absolute -top-12 right-0 text-white hover:text-gray-300 text-3xl font-bold w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10 bubble-btn-secondary"
-                      aria-label="Close video"
-                    >
-                      ×
-                    </button>
-                    {/* AI Video Demo - 15 second animated video about AI, YouTube & TikTok */}
-                    <div className="relative w-full h-[600px] rounded-2xl overflow-hidden">
-                      <AIVideoPlayer 
-                        className="w-full h-full" 
-                        onEnded={() => setVideoModalOpen(false)}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
         </div>
       </div>
 
