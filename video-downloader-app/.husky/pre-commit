@@ -7,5 +7,8 @@ npm run type-check || exit 1
 echo "🔍 Validating imports..."
 npm run validate-imports || exit 1
 
+echo "🔍 Validating Vite cache..."
+npm run validate-cache || exit 1
+
 echo "🔍 Running linter..."
 npx lint-staged

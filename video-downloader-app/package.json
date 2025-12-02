@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:clean": "npm run clean:cache && vite",
+    "dev:fresh": "npm run clean:full && npm install && vite",
+    "predev": "npm run validate-cache",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -12,6 +15,7 @@
     "validate": "npm run type-check && npm run lint",
     "validate-jsx": "node scripts/validate-jsx.js",
     "validate-imports": "node scripts/validate-imports.cjs",
+    "validate-cache": "node scripts/validate-vite-cache.cjs",
     "validate-duplicates": "node scripts/validate-duplicates.js",
     "validate-paths": "node scripts/validate-paths.js",
     "check-modules": "node scripts/check-modules.js",
@@ -19,14 +23,18 @@
     "clean": "rm -rf node_modules/.vite dist",
     "clean:full": "rm -rf node_modules node_modules/.vite dist package-lock.json",
     "clean:cache": "rm -rf node_modules/.vite",
+    "fix-vite": "node scripts/fix-vite-errors.cjs",
     "pre-build-check": "npm run clean && npm run validate-all",
     "preview": "vite preview",
     "server": "node server.cjs",
+    "postinstall": "npm run validate-cache",
     "prepare": "husky"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
+      "eslint --fix"
+    ],
+    "src/**/*.{ts,tsx}": [
       "npm run type-check -- --noEmit"
     ]
   },
