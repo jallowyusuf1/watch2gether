@@ -26,6 +26,7 @@ const Home = () => {
   const { showSuccess, showError } = useNotifications();
   const [recentVideos, setRecentVideos] = useState<Video[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [visibleElements, setVisibleElements] = useState<Set<string>>(new Set());
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   
   const heroRef = useRef<HTMLDivElement>(null);
