@@ -138,7 +138,7 @@ const Home = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Download Videos from{' '}
+              Unlocking the{' '}
             </motion.span>
             <motion.span
               initial={{ opacity: 0, scale: 0 }}
@@ -153,16 +153,16 @@ const Home = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              {' '}YouTube & TikTok
+              {' '}potential
             </motion.span>
             <br />
             <motion.span 
-              className="text-white drop-shadow-lg bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent"
+              className="text-white drop-shadow-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              Fast, Free & Easy
+              of technology
             </motion.span>
           </motion.h1>
 
@@ -172,7 +172,7 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1 }}
           >
-            Download your favorite videos from YouTube and TikTok in high quality. Save them offline, generate transcripts, and manage your video library all in one place.
+            We empower businesses to succeed in the digital age with IT solutions that streamline operations, enhance efficiency, and drive growth.
           </motion.p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 scroll-animate" data-section-id="hero-buttons">
