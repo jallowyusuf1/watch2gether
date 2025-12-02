@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
-  Download,
   Settings,
   Menu,
   X,
@@ -35,7 +34,6 @@ interface NavLink {
 const navLinks: NavLink[] = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/downloads', label: 'Downloads', icon: Download },
   { path: '/transcripts', label: 'Transcripts', icon: FileText },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];

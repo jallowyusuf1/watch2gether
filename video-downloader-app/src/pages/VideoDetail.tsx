@@ -1210,14 +1210,13 @@ const VideoDetail = () => {
       </div>
 
       {/* Share Modal */}
-      <ShareModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        videoTitle={video.title}
-        videoDescription={video.description}
-        videoUrl={video.url}
-        shareUrl={window.location.href}
-      />
+      {video && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          video={video}
+        />
+      )}
 
       {/* Clip Extractor */}
       {showClipExtractor && (

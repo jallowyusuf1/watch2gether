@@ -11,7 +11,7 @@
     "type-check": "tsc --noEmit",
     "validate": "npm run type-check && npm run lint",
     "validate-jsx": "node scripts/validate-jsx.js",
-    "validate-imports": "node scripts/validate-imports.js",
+    "validate-imports": "node scripts/validate-imports.cjs",
     "validate-duplicates": "node scripts/validate-duplicates.js",
     "validate-paths": "node scripts/validate-paths.js",
     "check-modules": "node scripts/check-modules.js",

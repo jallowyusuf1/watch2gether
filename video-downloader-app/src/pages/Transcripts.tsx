@@ -1,10 +1,15 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, FileText, Youtube, Music, ArrowUpDown, X, Clock, Calendar } from 'lucide-react';
+import { Search, FileText, Youtube, Music, ArrowUpDown, X, Clock, Calendar, Download, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { storageService } from '../services/storageService';
+import { youtubeService } from '../services/youtubeService';
+import { tiktokService } from '../services/tiktokService';
+import { parseVideoUrl } from '../utils/urlParser';
+import { useNotifications } from '../contexts/NotificationContext';
 import type { Video, VideoPlatform } from '../types';
 
 type SortOption = 'newest' | 'oldest' | 'title-asc' | 'title-desc';
+type TranscriptStatus = 'idle' | 'processing' | 'completed' | 'error';
 
 const Transcripts = () => {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -14,7 +19,12 @@ const Transcripts = () => {
   const [platformFilter, setPlatformFilter] = useState<VideoPlatform | 'all'>('all');
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
+  const [transcriptUrl, setTranscriptUrl] = useState('');
+  const [transcriptStatus, setTranscriptStatus] = useState<TranscriptStatus>('idle');
+  const [transcriptMessage, setTranscriptMessage] = useState('');
   const navigate = useNavigate();
+  const { showSuccess, showError, showInfo } = useNotifications();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Load videos with transcripts from IndexedDB
   const loadVideos = useCallback(async () => {
@@ -138,6 +148,108 @@ const Transcripts = () => {
     setSearchQuery('');
   };
 
+  // Handle transcript generation from URL
+  const handleGenerateTranscript = async () => {
+    const trimmedUrl = transcriptUrl.trim();
+
+    if (!trimmedUrl) {
+      showError('Please enter a video URL');
+      return;
+    }
+
+    const parsed = parseVideoUrl(trimmedUrl);
+    if (!parsed) {
+      showError('Invalid video URL. Please enter a valid YouTube or TikTok URL.');
+      return;
+    }
+
+    try {
+      setTranscriptStatus('processing');
+      setTranscriptMessage('Fetching video metadata...');
+
+      let videoData: any;
+      let transcript: string = '';
+
+      // Get video metadata and transcript based on platform
+      if (parsed.platform === 'youtube') {
+        const metadata = await youtubeService.getVideoMetadata(trimmedUrl);
+        setTranscriptMessage('Generating transcript...');
+        transcript = await youtubeService.getTranscript(trimmedUrl);
+
+        videoData = {
+          id: `yt_${parsed.videoId}_${Date.now()}`,
+          videoId: parsed.videoId,
+          title: metadata.title,
+          author: metadata.author,
+          platform: 'youtube' as VideoPlatform,
+          description: metadata.description || '',
+          thumbnail: metadata.thumbnail,
+          duration: metadata.duration,
+          downloadDate: new Date(),
+          transcript,
+          tags: [],
+          quality: '1080p',
+          format: 'mp4' as const,
+        };
+      } else if (parsed.platform === 'tiktok') {
+        const metadata = await tiktokService.getVideoMetadata(trimmedUrl);
+        setTranscriptMessage('Generating transcript...');
+        transcript = await tiktokService.getTranscript(trimmedUrl);
+
+        videoData = {
+          id: `tt_${Date.now()}`,
+          videoId: trimmedUrl,
+          title: metadata.title || 'TikTok Video',
+          author: metadata.author || 'Unknown',
+          platform: 'tiktok' as VideoPlatform,
+          description: metadata.description || '',
+          thumbnail: metadata.thumbnail || '',
+          duration: metadata.duration || 0,
+          downloadDate: new Date(),
+          transcript,
+          tags: [],
+          quality: '1080p',
+          format: 'mp4' as const,
+        };
+      }
+
+      if (!transcript || transcript.trim().length === 0) {
+        throw new Error('No transcript available for this video');
+      }
+
+      // Save to IndexedDB
+      setTranscriptMessage('Saving transcript...');
+      await storageService.saveVideo(videoData);
+
+      // Update UI
+      setTranscriptStatus('completed');
+      setTranscriptMessage('Transcript generated successfully!');
+      showSuccess('Transcript generated and saved!');
+
+      // Reload videos
+      await loadVideos();
+
+      // Reset form after delay
+      setTimeout(() => {
+        setTranscriptUrl('');
+        setTranscriptStatus('idle');
+        setTranscriptMessage('');
+      }, 3000);
+
+    } catch (error: any) {
+      console.error('Transcript generation error:', error);
+      setTranscriptStatus('error');
+      setTranscriptMessage(error.message || 'Failed to generate transcript');
+      showError(error.message || 'Failed to generate transcript');
+
+      // Reset error after delay
+      setTimeout(() => {
+        setTranscriptStatus('idle');
+        setTranscriptMessage('');
+      }, 5000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen text-white relative overflow-hidden pt-24 flex items-center justify-center">
@@ -153,6 +265,79 @@ const Transcripts = () => {
         <h1 className="text-4xl md:text-5xl font-bold mb-8 text-white">
           Transcripts
         </h1>
+
+        {/* URL Input Section for Transcript Generation */}
+        <div className="mb-8 bubble-card p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <FileText className="w-6 h-6 text-purple-400" />
+            <h2 className="text-xl font-semibold text-white">Generate Transcript</h2>
+          </div>
+          <p className="text-gray-300 mb-4 text-sm">
+            Enter a YouTube or TikTok URL to automatically generate and save its transcript
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={transcriptUrl}
+                onChange={(e) => setTranscriptUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && transcriptStatus !== 'processing') {
+                    handleGenerateTranscript();
+                  }
+                }}
+                placeholder="https://youtube.com/watch?v=... or https://tiktok.com/..."
+                disabled={transcriptStatus === 'processing'}
+                className="w-full px-4 py-3 rounded-lg bg-white/5 border-2 border-white/10
+                         focus:border-purple-400 focus:outline-none
+                         focus:ring-2 focus:ring-purple-400/20 text-white placeholder-gray-400
+                         transition-all duration-200 backdrop-blur-sm disabled:opacity-50"
+              />
+              {transcriptStatus === 'processing' && (
+                <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400 animate-spin" />
+              )}
+              {transcriptStatus === 'completed' && (
+                <CheckCircle className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-400" />
+              )}
+              {transcriptStatus === 'error' && (
+                <AlertCircle className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-red-400" />
+              )}
+            </div>
+            <button
+              onClick={handleGenerateTranscript}
+              disabled={transcriptStatus === 'processing' || !transcriptUrl.trim()}
+              className="bubble-btn px-6 py-3 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {transcriptStatus === 'processing' ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  <span>Generate</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Status Message */}
+          {transcriptMessage && (
+            <div className={`mt-4 p-3 rounded-lg flex items-center gap-2 ${
+              transcriptStatus === 'completed' ? 'bg-green-500/20 border border-green-500/30' :
+              transcriptStatus === 'error' ? 'bg-red-500/20 border border-red-500/30' :
+              'bg-purple-500/20 border border-purple-500/30'
+            }`}>
+              {transcriptStatus === 'processing' && <Loader2 className="w-4 h-4 animate-spin" />}
+              {transcriptStatus === 'completed' && <CheckCircle className="w-4 h-4 text-green-400" />}
+              {transcriptStatus === 'error' && <AlertCircle className="w-4 h-4 text-red-400" />}
+              <span className="text-sm">{transcriptMessage}</span>
+            </div>
+          )}
+        </div>
 
         {/* Search and Filters */}
         <div className="mb-6 space-y-4">
@@ -254,14 +439,14 @@ const Transcripts = () => {
             <p className="text-gray-300 mb-6">
               {debouncedSearchQuery || platformFilter !== 'all'
                 ? 'No transcripts match your filters. Try adjusting your search or filters.'
-                : 'No videos have transcripts yet. Generate transcripts from the video detail page.'}
+                : 'No transcripts yet. Enter a video URL above to generate your first transcript.'}
             </p>
             {!debouncedSearchQuery && platformFilter === 'all' && (
               <button
-                onClick={() => navigate('/downloads')}
+                onClick={() => inputRef.current?.focus()}
                 className="bubble-btn px-6 py-3"
               >
-                Go to Downloads
+                Generate Transcript
               </button>
             )}
           </div>
