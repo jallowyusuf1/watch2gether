@@ -77,10 +77,31 @@ a:focus {
   box-shadow: none;
 }
 
-/* Add subtle custom focus indication for accessibility (optional) */
-button:focus-visible {
-  ring: 2px;
-  ring-color: transparent;
+/* Accessibility: Focus indicators */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .bubble-card:hover {
+    transform: none !important;
+  }
 }
 
 /* Bubble Card Styles - Matching Tech Nexus with 3D Tilt */

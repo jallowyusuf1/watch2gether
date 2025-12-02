@@ -193,49 +193,66 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Downloads */}
-        {recentVideos.length > 0 && (
+        {loadingRecent ? (
+          <div className="bubble-card p-6 md:p-8">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+            </div>
+          </div>
+        ) : recentVideos.length > 0 ? (
           <div className="bubble-card p-6 md:p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">Recent Downloads</h2>
               <button
                 onClick={() => navigate('/downloads')}
                 className="bubble-btn-secondary px-4 py-2 flex items-center gap-2"
+                aria-label="View all downloads"
               >
                 View All
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-            {loadingRecent ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                {recentVideos.map((video) => (
-                  <VideoCard
-                    key={video.id}
-                    video={video}
-                    onEdit={(video) => navigate(`/video/${video.id}?edit=true`)}
-                    onTranscript={(video) => navigate(`/video/${video.id}?tab=transcript`)}
-                    onDelete={async (video) => {
-                      if (window.confirm(`Are you sure you want to delete "${video.title}"?`)) {
-                        try {
-                          await storageService.deleteVideo(video.id);
-                          const allVideos = await storageService.getAllVideos();
-                          setRecentVideos(allVideos.slice(0, 6));
-                          const totalStorage = await storageService.getTotalStorageUsed();
-                          setStats(prev => ({ ...prev, totalVideos: allVideos.length, totalStorage }));
-                          showSuccess(`Video "${video.title}" deleted successfully.`);
-                        } catch (error) {
-                          console.error('Error deleting video:', error);
-                          showError('Failed to delete video. Please try again.');
-                        }
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              {recentVideos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  onEdit={(video) => navigate(`/video/${video.id}?edit=true`)}
+                  onTranscript={(video) => navigate(`/video/${video.id}?tab=transcript`)}
+                  onDelete={async (video) => {
+                    if (window.confirm(`Are you sure you want to delete "${video.title}"?`)) {
+                      try {
+                        await storageService.deleteVideo(video.id);
+                        const allVideos = await storageService.getAllVideos();
+                        setRecentVideos(allVideos.slice(0, 6));
+                        const totalStorage = await storageService.getTotalStorageUsed();
+                        setStats(prev => ({ ...prev, totalVideos: allVideos.length, totalStorage }));
+                        showSuccess(`Video "${video.title}" deleted successfully.`);
+                      } catch (error) {
+                        console.error('Error deleting video:', error);
+                        showError('Failed to delete video. Please try again.');
                       }
-                    }}
-                  />
-                ))}
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="bubble-card p-6 md:p-8">
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="bg-purple-500/20 rounded-full p-6 mb-4">
+                <Download className="w-16 h-16 text-purple-400" />
               </div>
-            )}
+              <h2 className="text-2xl font-bold text-white mb-2">No videos yet</h2>
+              <p className="text-gray-300 mb-6">Start downloading videos to see them here.</p>
+              <button
+                onClick={() => downloadFormRef.current?.focusInput()}
+                className="bubble-btn px-6 py-3"
+              >
+                Download Your First Video
+              </button>
+            </div>
           </div>
         )}
       </div>

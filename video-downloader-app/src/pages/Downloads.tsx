@@ -1,12 +1,15 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Download, Youtube, Music, ArrowUpDown, X, CheckSquare, Square, Loader2, Package } from 'lucide-react';
+import { Search, Download, Youtube, Music, ArrowUpDown, X, CheckSquare, Square, Loader2, Package, Video as VideoIcon } from 'lucide-react';
 import JSZip from 'jszip';
 import VideoCard from '../components/VideoCard';
 import { TagSidebar } from '../components/TagSidebar';
 import { storageService } from '../services/storageService';
 import { tagService } from '../services/tagService';
 import { useNotifications } from '../contexts/NotificationContext';
+import { VideoGridSkeleton } from '../components/LoadingSkeleton';
+import { EmptyState } from '../components/EmptyState';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 import type { Video, VideoPlatform } from '../types';
 import type { TagFilterLogic } from '../types/tag.types';
 
@@ -242,10 +245,8 @@ const Downloads = () => {
   if (loading) {
     return (
       <div className="min-h-screen relative overflow-hidden pt-24">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
-          </div>
+        <div className="container mx-auto px-4 md:px-8 py-8 max-w-7xl">
+          <VideoGridSkeleton count={6} />
         </div>
       </div>
     );
@@ -440,27 +441,38 @@ const Downloads = () => {
 
             {/* Videos Grid or Empty State */}
             {filteredVideos.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center animate-fadeIn">
-                <div className="bg-purple-500/20 rounded-full p-6 mb-4">
-                  <Download className="w-16 h-16 text-purple-400" />
-                </div>
-                <h2 className="text-2xl font-semibold text-white mb-2">
-                  No videos downloaded yet
-                </h2>
-                <p className="text-gray-300 mb-6">
-                  {debouncedSearchQuery || platformFilter !== 'all'
-                ? 'No videos match your filters. Try adjusting your search or filters.'
-                : 'Start downloading videos to see them here.'}
-                </p>
-                {!debouncedSearchQuery && platformFilter === 'all' && (
-                <button
-                  onClick={() => navigate('/')}
-                  className="bubble-btn px-6 py-3"
-                >
-                  Go to Download Page
-                </button>
-            )}
-              </div>
+              <EmptyState
+                icon={Download}
+                title={
+                  debouncedSearchQuery || platformFilter !== 'all'
+                    ? 'No videos found'
+                    : 'No videos downloaded yet'
+                }
+                description={
+                  debouncedSearchQuery || platformFilter !== 'all'
+                    ? 'No videos match your filters. Try adjusting your search or filters.'
+                    : 'Start downloading videos from YouTube or TikTok to see them here.'
+                }
+                action={
+                  !debouncedSearchQuery && platformFilter === 'all'
+                    ? {
+                        label: 'Go to Dashboard',
+                        onClick: () => navigate('/dashboard'),
+                      }
+                    : undefined
+                }
+                secondaryAction={
+                  debouncedSearchQuery || platformFilter !== 'all'
+                    ? {
+                        label: 'Clear Filters',
+                        onClick: () => {
+                          setSearchQuery('');
+                          setPlatformFilter('all');
+                        },
+                      }
+                    : undefined
+                }
+              />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVideos.map((video, index) => (
@@ -505,9 +517,10 @@ const Downloads = () => {
                           newSet.delete(video.id);
                           return newSet;
                         });
+                        showSuccess(`Video "${video.title}" deleted successfully.`);
                       } catch (error) {
                         console.error('Error deleting video:', error);
-                        alert('Failed to delete video. Please try again.');
+                        showError('Failed to delete video. Please try again.');
                       }
                     }
                   }}
